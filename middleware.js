@@ -4,9 +4,15 @@ const Campground = require( './models/campground' );
 const Review = require( './models/review' );
 const catchAsync = require( './utils/catchAsync' );
 
-module.exports.isLoggedIn = ( req, res, next ) =>
+module.exports.isLoggedIn = async ( req, res, next ) =>
 {
     const { id } = req.params;
+    const campground = await Campground.findById( id );
+    if ( !campground )
+    {
+        req.flash( 'error', 'Cannot find that campground' );
+        return res.redirect( '/campgrounds' );
+    }
     if ( !req.isAuthenticated() )
     {
         req.session.returnTo = (req.query._method === 'DELETE' ? `/campgrounds/${id}` : req.originalUrl);
@@ -33,6 +39,11 @@ module.exports.isAuthor = async ( req, res, next ) =>
 {
     const { id } = req.params;
     const campground = await Campground.findById( id );
+    if ( !campground )
+    {
+        req.flash( 'error', 'Cannot find that campground' );
+        return res.redirect( '/campgrounds' );
+    }
     if ( !campground.author.equals( req.user._id ) )
     {
         req.flash( 'error', 'You do not have Permission to do that' );
